@@ -2,4 +2,4 @@
 School opdracht programmeren periode 3
 
 Bron recepten: 
-https://www.okokorecepten.nl/recept/chefs/gordon-ramsay/2/
+https://www.okokorecepten.nl/recept/chefs/gordon-ramsay/
