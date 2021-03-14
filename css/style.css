@@ -1,0 +1,82 @@
+/* ------ GOOGLE FONTS ------ */
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600;700&display=swap');
+
+#navigation {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #000;
+    color: #fff;
+    font-family: 'Oswald', sans-serif;
+    font-weight: 500;
+    font-size: 35px;
+}
+
+#navigation h1 {
+    width: 80%;
+    margin: 20px auto;
+    padding-right: 250px;
+}
+
+main {
+    width: 80%;
+    margin: 135px auto 0 auto;
+    padding-right: 250px;
+}
+
+.girdContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-gap: 20px;
+}
+
+.card {
+    border: 1px solid #d3d3d3;
+    border-radius: .25rem;
+}
+
+.bg-img {
+    background-size: cover;
+    min-height: 180px;
+    background-position: center;
+    background-color: #ccc;
+}
+
+.content {
+    padding: 15px;
+}
+
+.readMore {
+    background-color: transparent;
+    border: 1px solid #2196F3;
+    padding: .5rem 1rem;
+    cursor: pointer;
+    border-radius: .25rem;
+}
+
+.sidebar {
+    height: 75%;
+    width: 250px;
+    position: fixed;
+    z-index: 1;
+    top: 135px;
+    right: 0;
+    background-color: #2d2d2d;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: #000;
+    color: #fff;
+    text-align: center;
+}
+
+footer a {
+    color: #fff;
+}
