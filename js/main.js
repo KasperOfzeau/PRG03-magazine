@@ -1,12 +1,7 @@
 window.addEventListener('load', init);
 let cardsContainer;
-
-// ----- Initialize after the DOM is ready ------ //
-function init()
-{
-    cardsContainer = document.querySelector(".girdContainer");
-    addCards();
-}
+let recipeField;
+let tagsField;
 
 // ----- All dishes ----- //
 const dishes = [
@@ -16,6 +11,25 @@ const dishes = [
     { name: "Gordon Ramsay: apple crumble", image: "./images/appleCrumble.jpg", recipe: "Sprinkle the crumble topping over the fruit and reheat the dish on the stove. When the apple mixture starts to bubble, place the dish in the oven and bake for 12-14 minutes, until the topping is a nice golden yellow. Remove from oven and serve warm.", tags: "vegetarian, dessert" },
     { name: "Gordon Ramsay: Roasted mini beets with balsamic dressing", image: "./images/Beet-Salad.jpg", recipe: "Heat the butter in a frying pan until foamy, then fold in the beets and fry in the butter for a few minutes, stirring regularly, until shiny. Deglaze them with the balsamic vinegar and let it reduce to a viscous sauce. Serve the beets warm or at room temperature.", tags: "meat, side dish"}
 ];
+
+// ----- Initialize after the DOM is ready ------ //
+function init()
+{
+    cardsContainer = document.querySelector(".girdContainer"); // Container for all the cards
+    recipeField = document.getElementById('recipeField'); // Field for displaying recipe
+    tagsField = document.getElementById('tagsField'); // Field for displaying tags
+
+    cardsContainer.addEventListener('click', readMoreClickHandler); // Global click handler for buttons
+
+    addCards();
+}
+
+// ----- Display all cards ----- //
+function addCards() {
+    for (let dish of dishes) {
+        addCard(dish);
+    }
+}
 
 function addCard(dish) {
 
@@ -47,24 +61,24 @@ function addCard(dish) {
     readMore.className = 'readMore';
     readMore.dataset.recipe = dish.recipe;
     readMore.dataset.tags = dish.tags;
-    readMore.addEventListener('click' , readMoreClickHandler);
     nameDiv.appendChild(readMore);
+
+    // ----- Create favorite button ----- //
+    const favButton = document.createElement('input');
+    favButton.type = 'button';
+    favButton.value = 'Add to favorites';
+    favButton.className = 'favButton';
+    nameDiv.appendChild(favButton);
 }
 
 // ----- Shows recipe and tags of the selected dish ----- //
 function readMoreClickHandler(e) {
-    let recipe = e.target.dataset.recipe;
-    let recipeField = document.getElementById('recipeField');
-    recipeField.innerHTML = recipe;
+    let currentTargetClassName = e.target.className;
 
-    let tags = e.target.dataset.tags;
-    let tagsField = document.getElementById('tagsField');
-    tagsField.innerHTML = tags;
-}
-
-// ----- Display all cards ----- //
-function addCards() {
-    for (let dish of dishes) {
-        addCard(dish);
+    if(currentTargetClassName !== "readMore") {
+        return;
     }
+
+    recipeField.innerHTML = e.target.dataset.recipe;
+    tagsField.innerHTML = e.target.dataset.tags;
 }
