@@ -2,6 +2,7 @@ window.addEventListener('load', init);
 let cardsContainer;
 let recipeField;
 let tagsField;
+let listFavorites = [];
 
 // ----- All dishes ----- //
 const dishes = [
@@ -21,7 +22,21 @@ function init()
 
     cardsContainer.addEventListener('click', readMoreClickHandler); // Global click handler for buttons
 
-    addCards();
+    addCards(); // DISPLAY ALL CARDS
+
+    // ----- LOOK IN LOCAL STORAGE WHAT FAVORITES ARE ----- //
+    let listFavoritesString = localStorage.getItem('listFavorites');
+    if(listFavoritesString) {
+        let favorites = JSON.parse(listFavoritesString);
+        for (let favorite of favorites) {
+            listFavorites.push(favorite);
+            let favoriteCard = document.getElementById(favorite);
+            favoriteCard.classList.add("favoriteCard");
+            let favoriteButton = favoriteCard.getElementsByClassName("favButton")[0];
+            favoriteButton.value = 'Remove from favorites';
+            favoriteButton.className = 'removeFavButton';
+        }
+    }
 }
 
 // ----- Display all cards ----- //
@@ -36,6 +51,7 @@ function addCard(dish) {
     // ----- Create new card ----- //
     const cardDiv = document.createElement("div");
     cardDiv.classList.add("card");
+    cardDiv.setAttribute('id', dish.name);
     cardsContainer.appendChild(cardDiv);
 
     // ----- Create image for card ----- //
@@ -75,10 +91,31 @@ function addCard(dish) {
 function readMoreClickHandler(e) {
     let currentTargetClassName = e.target.className;
 
-    if(currentTargetClassName !== "readMore") {
-        return;
+    if(currentTargetClassName === "readMore") {
+        recipeField.innerHTML = e.target.dataset.recipe;
+        tagsField.innerHTML = e.target.dataset.tags;
+    } else if (currentTargetClassName === "favButton") {
+        let elementCard = e.target.parentElement.parentElement.id;
+        document.getElementById(elementCard).classList.add("favoriteCard");
+        e.target.value = 'Remove from favorites';
+        e.target.className = 'removeFavButton';
+        // ----- ADD ELEMENT TO FAVORITES ----- //
+        listFavorites.push(elementCard);
+        // ----- UPDATE LOCAL STORAGE ----- //
+        let listFavoritesString = JSON.stringify(listFavorites);
+        localStorage.setItem('listFavorites', listFavoritesString);
+    } else if(currentTargetClassName === "removeFavButton") {
+        let elementCard = e.target.parentElement.parentElement.id;
+        document.getElementById(elementCard).classList.remove("favoriteCard");
+        e.target.value = 'Add to favorites';
+        e.target.className = 'favButton';
+        // ----- REMOVE FAVORITE FROM ARRAY ----- //
+        const index = listFavorites.indexOf(elementCard);
+        if (index > -1) {
+            listFavorites.splice(index, 1);
+        }
+        // ----- UPDATE LOCAL STORAGE ----- //
+        let listFavoritesString = JSON.stringify(listFavorites);
+        localStorage.setItem('listFavorites', listFavoritesString);
     }
-
-    recipeField.innerHTML = e.target.dataset.recipe;
-    tagsField.innerHTML = e.target.dataset.tags;
 }
