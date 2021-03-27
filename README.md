@@ -1,5 +1,6 @@
-# PRG03-magazine
-School opdracht programmeren periode 3
+# PRG03-MAGAZINE
+School project. Made a webpage with recipes from Gordon Ramsay. 
+Used JS and AJAX to load webservice data with all the recipes.
 
-Bron recepten: 
+Recipes are from: 
 https://www.okokorecepten.nl/recept/chefs/gordon-ramsay/
