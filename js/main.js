@@ -1,21 +1,21 @@
 window.addEventListener('load', init);
+
 let cardsContainer;
 let recipeField;
 let tagsField;
 let listFavorites = [];
-
-// ----- All dishes ----- //
-const dishes = [
-    { name: "Gordon Ramsay: lemon chicken", image: "./images/picHkQcGP.jpg", recipe: "Place the lemon chicken on a plate and sprinkle the parsley on top. Serve with mashed potatoes and green beans or steamed sugar snaps.", tags: 'poultry, main dish'},
-    { name: "Gordon Ramsay: Stuffed chicken fillet wrapped in Parma ham", image: "./images/Chicken-breast-stuffed-with-ricotta-cheese-wrapped-in-Parma-ham.jpg", recipe: "Cover the chicken breasts with aluminum foil and let them rest in a warm place for 5 minutes. Slice the filled chicken fillets diagonally and place on four warm plates. Delicious with steamed vegetables and mashed potatoes or spiced couscous.", tags: "poultry, main dish" },
-    { name: "Gordon Ramsay: potato salad with mustard dressing", image: "./images/creme-fraiche-potato-salad.jpg", recipe: "Drain the boiled potatoes in a colander and let them cool slightly. If desired, peel off the skin with a small knife; wear gloves to protect your hands. Place the still warm potatoes in a large bowl and mix in the dressing. Stir in the peas and broad beans. Taste and add salt and pepper if necessary. Garnish with a few sprigs of dill and serve.", tags: "vegetarian, main dish" },
-    { name: "Gordon Ramsay: apple crumble", image: "./images/appleCrumble.jpg", recipe: "Sprinkle the crumble topping over the fruit and reheat the dish on the stove. When the apple mixture starts to bubble, place the dish in the oven and bake for 12-14 minutes, until the topping is a nice golden yellow. Remove from oven and serve warm.", tags: "vegetarian, dessert" },
-    { name: "Gordon Ramsay: Roasted mini beets with balsamic dressing", image: "./images/Beet-Salad.jpg", recipe: "Heat the butter in a frying pan until foamy, then fold in the beets and fry in the butter for a few minutes, stirring regularly, until shiny. Deglaze them with the balsamic vinegar and let it reduce to a viscous sauce. Serve the beets warm or at room temperature.", tags: "meat, side dish"}
-];
+let webserviceURL;
+let webserviceURLTags;
+let listFavoritesString;
+let favorites;
 
 // ----- Initialize after the DOM is ready ------ //
 function init()
 {
+    webserviceURL = 'webservice/index.php';
+    listFavoritesString = localStorage.getItem('listFavorites');
+    favorites = JSON.parse(listFavoritesString);
+
     cardsContainer = document.querySelector(".girdContainer"); // Container for all the cards
     recipeField = document.getElementById('recipeField'); // Field for displaying recipe
     tagsField = document.getElementById('tagsField'); // Field for displaying tags
@@ -23,26 +23,26 @@ function init()
     cardsContainer.addEventListener('click', readMoreClickHandler); // Global click handler for buttons
 
     addCards(); // DISPLAY ALL CARDS
-
-    // ----- LOOK IN LOCAL STORAGE WHAT FAVORITES ARE ----- //
-    let listFavoritesString = localStorage.getItem('listFavorites');
-    if(listFavoritesString) {
-        let favorites = JSON.parse(listFavoritesString);
-        for (let favorite of favorites) {
-            listFavorites.push(favorite);
-            let favoriteCard = document.getElementById(favorite);
-            favoriteCard.classList.add("favoriteCard");
-            let favoriteButton = favoriteCard.getElementsByClassName("favButton")[0];
-            favoriteButton.value = 'Remove from favorites';
-            favoriteButton.className = 'removeFavButton';
-        }
-    }
 }
 
 // ----- Display all cards ----- //
 function addCards() {
-    for (let dish of dishes) {
-        addCard(dish);
+
+    fetch(webserviceURL)
+        .then((response) => {
+            if(!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        })
+        .then(getCardItemsSuccessHandler)
+        .catch(getCardItemsErrorHandler);
+}
+
+function getCardItemsSuccessHandler(data) {
+    // create dom elements per item
+    for(let item of data) {
+        addCard(item);
     }
 }
 
@@ -51,50 +51,78 @@ function addCard(dish) {
     // ----- Create new card ----- //
     const cardDiv = document.createElement("div");
     cardDiv.classList.add("card");
-    cardDiv.setAttribute('id', dish.name);
-    cardsContainer.appendChild(cardDiv);
+    cardDiv.setAttribute('id', dish.id);
 
     // ----- Create image for card ----- //
     const cardImg = document.createElement("div");
     cardImg.classList.add("bg-img");
-    cardImg.style.backgroundImage = "url('" + dish.image + "')";
-    cardDiv.appendChild(cardImg);
+    cardImg.style.backgroundImage = "url('https://source.unsplash.com/1600x900/?" + dish.imageTag + "')";
+
+    // ----- Create rating div ----- //
+    const cardRating = document.createElement("div");
+    cardRating.className = "cardRating";
+    const rating = document.createElement("i");
+    rating.innerHTML = "<i class=\'fas fa-star\'></i> " + dish.rating + "/10";
 
     // ----- Create div title card ----- //
     const nameDiv = document.createElement("div");
     nameDiv.classList.add("content");
-    cardDiv.appendChild(nameDiv);
 
     // ----- Create title card ----- //
     const cardTitle = document.createElement("h4");
     cardTitle.innerText = dish.name;
-    nameDiv.appendChild(cardTitle);
+
+    // ----- Create kitchen tag ----- //
+    const cardKitchenTag = document.createElement("p");
+    cardKitchenTag.innerText = "Kitchen: " + dish.kitchen;
+    cardKitchenTag.className = 'kitchenTag';
 
     // ----- Create read more button ----- //
     const readMore = document.createElement('input');
     readMore.type = 'button';
     readMore.value = 'Read more...';
     readMore.className = 'readMore';
-    readMore.dataset.recipe = dish.recipe;
-    readMore.dataset.tags = dish.tags;
-    nameDiv.appendChild(readMore);
+    readMore.dataset.id = dish.id;
 
     // ----- Create favorite button ----- //
     const favButton = document.createElement('input');
     favButton.type = 'button';
     favButton.value = 'Add to favorites';
     favButton.className = 'favButton';
+
+    // ----- LOOK IN LOCAL STORAGE IF IS FAVORITE ----- //
+    if(listFavoritesString && listFavoritesString.includes(dish.id)) {
+        showLocalFavorites(dish.id, cardDiv, favButton );
+    }
+
+    // ----- ADD ALL IN TO HTML ----- //
+    cardsContainer.appendChild(cardDiv);
+    cardDiv.appendChild(cardImg);
+    cardDiv.appendChild(cardRating);
+    cardRating.appendChild(rating);
+    cardDiv.appendChild(nameDiv);
+    nameDiv.appendChild(cardTitle);
+    nameDiv.appendChild(cardKitchenTag);
+    nameDiv.appendChild(readMore);
     nameDiv.appendChild(favButton);
+}
+
+function showLocalFavorites(id, cardDiv, favButton){
+    listFavorites.push(id);
+    cardDiv.classList.add("favoriteCard");
+    favButton.value = 'Remove from favorites';
+    favButton.className = 'removeFavButton';
 }
 
 // ----- Shows recipe and tags of the selected dish ----- //
 function readMoreClickHandler(e) {
     let currentTargetClassName = e.target.className;
-
-    if(currentTargetClassName === "readMore") {
-        recipeField.innerHTML = e.target.dataset.recipe;
-        tagsField.innerHTML = e.target.dataset.tags;
-    } else if (currentTargetClassName === "favButton") {
+    // ----- IF READ MORE BUTTON PUSHED ----- //
+    if (currentTargetClassName === "readMore") {
+        getReadMore(e.target.dataset.id);
+    }
+    // ----- IF FAV BUTTON PUSHED ----- //
+    else if (currentTargetClassName === "favButton") {
         let elementCard = e.target.parentElement.parentElement.id;
         document.getElementById(elementCard).classList.add("favoriteCard");
         e.target.value = 'Remove from favorites';
@@ -104,18 +132,49 @@ function readMoreClickHandler(e) {
         // ----- UPDATE LOCAL STORAGE ----- //
         let listFavoritesString = JSON.stringify(listFavorites);
         localStorage.setItem('listFavorites', listFavoritesString);
-    } else if(currentTargetClassName === "removeFavButton") {
+    }
+    // ----- IF REMOVE FAV BUTTON PUSHED ----- //
+    else if (currentTargetClassName === "removeFavButton") {
         let elementCard = e.target.parentElement.parentElement.id;
         document.getElementById(elementCard).classList.remove("favoriteCard");
         e.target.value = 'Add to favorites';
         e.target.className = 'favButton';
         // ----- REMOVE FAVORITE FROM ARRAY ----- //
-        const index = listFavorites.indexOf(elementCard);
+        let idNumber = Number(elementCard);
+        const index = listFavorites.indexOf(idNumber);
+        console.log(index);
         if (index > -1) {
             listFavorites.splice(index, 1);
         }
+        console.log(listFavorites)
         // ----- UPDATE LOCAL STORAGE ----- //
         let listFavoritesString = JSON.stringify(listFavorites);
         localStorage.setItem('listFavorites', listFavoritesString);
     }
+}
+
+// ----- GET READ MORE INFORMATION OF SELECTED DISH ----- //
+function getReadMore(id) {
+    webserviceURLTags = webserviceURL + "?id=" + id;
+    fetch(webserviceURLTags)
+        .then((response) => {
+            if(!response.ok) {
+                throw new Error(response.statusText);
+            }
+            return response.json();
+        })
+        .then(showReadMore)
+        .catch(getCardItemsErrorHandler);
+}
+
+function showReadMore(data) {
+    let recipeField = document.getElementById('recipeField');
+    let tagsField = document.getElementById('tagsField');
+
+    recipeField.innerText = data.recipe; // DISPLAY RECIPE
+    tagsField.innerText = data.tags.join(', '); // DISPLAY TAGS
+}
+
+function getCardItemsErrorHandler(data) {
+    console.log(data);
 }
